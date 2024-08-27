@@ -6,9 +6,25 @@ import sys
 from typing import Optional, Tuple
 import argparse
 from flask import Flask, request, render_template
+import logging
 
 # custom imports
-from config import dbpath
+from config import dbpath, log
+
+def setup_logging(log_mode):
+    if log_mode == 'file' or log_mode == 'all':
+        file_handler = logging.FileHandler('app.log')
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        logging.getLogger().addHandler(file_handler)
+
+    if log_mode == 'screen' or log_mode == 'all':
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.INFO)
+        stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        logging.getLogger().addHandler(stream_handler)
+
+    logging.getLogger().setLevel(logging.INFO)
 
 def create_connection(db_file: str) -> Optional[sqlite3.Connection]:
     """ create a database connection to the SQLite database
@@ -18,20 +34,28 @@ def create_connection(db_file: str) -> Optional[sqlite3.Connection]:
     """
     conn = None
     try:
-        conn = sqlite3.connect(db_file)
-        
-        if not path.isfile(dbpath):
-            print("Creating new database")
+        if not path.isfile(db_file):
+            logging.info(f"Database file {db_file} does not exist. Creating new database.")
+            conn = sqlite3.connect(db_file)
+            
             if path.isfile("base.sql"):
+                logging.info("Importing database schema from base.sql")
                 with open('base.sql', 'r') as f:
-                    sql = f.read()
-                    conn.executescript(sql)
+                    sql_statements = f.read().split(';')
+                    for statement in sql_statements:
+                        if statement.strip():
+                            conn.execute(statement)
+                conn.commit()
+                logging.info("Database created successfully")
             else:
-                print("No DB schema found.")
-                sys.exit(1)
+                logging.warning("No DB schema found. Please ensure base.sql exists in the current directory.")
+                return None
+        else:
+            logging.info(f"Connecting to existing database: {db_file}")
+            conn = sqlite3.connect(db_file)
 
     except Error as e:
-        print(f"Error connecting to the database: {e}")
+        logging.error(f"Error connecting to the database: {e}")
         return None
 
     return conn
@@ -57,7 +81,7 @@ def interactive(conn: sqlite3.Connection, description: str, url: str, type_id: O
     interactive mode
     """
     add_link(conn, (datetime.now(), description, url, type_id, icon))
-    print("Link added successfully!")
+    logging.info("Link added successfully!")
 
 def web_server() -> None:
     """
@@ -69,7 +93,7 @@ def web_server() -> None:
     def index():
         conn = create_connection(dbpath)
         if not conn:
-            return "Unable to establish a connection to the database."
+            return "Unable to establish a connection to the database. Please check your configuration and try again."
 
         if request.method == 'POST':
             description = request.form['description']
@@ -78,6 +102,7 @@ def web_server() -> None:
             icon = request.form['icon']
             
             add_link(conn, (datetime.now(), description, url, type_id, icon))
+            conn.close()
             return "Link added successfully!"
         
         cur = conn.cursor()
@@ -98,7 +123,10 @@ def main() -> None:
     parser.add_argument('-t', '--type_id', type=int, help='Link type ID')
     parser.add_argument('-i', '--icon', type=str, help='Link icon')
     parser.add_argument('-w', '--web', action='store_true', help='Start web server')
+    parser.add_argument('-l', '--log', type=str, choices=['screen', 'file', 'all'], default=log, help='Logging mode')
     args = parser.parse_args()
+
+    setup_logging(args.log)
 
     if args.web:
         web_server()
@@ -108,11 +136,11 @@ def main() -> None:
             if args.description and args.url:
                 interactive(dbc, args.description, args.url, args.type_id, args.icon)
             else:
-                print("Please provide at least a description and a URL.")
+                logging.error("Please provide at least a description and a URL.")
                 sys.exit(1)
         else:
-            print("Unable to establish a connection to the database. Please check your configuration and try again.")
+            logging.error("Unable to establish a connection to the database. Please check your configuration and try again.")
             sys.exit(1)
-            
+
 if __name__ == "__main__":
     main()
