@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Link</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            display: grid;
+            gap: 10px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="text"], input[type="url"], select {
+            width: 100%;
+            padding: 5px;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add Link</h1>
+    <form method="post">
+        <label for="description">Description:</label>
+        <input type="text" id="description" name="description" required>
+        
+        <label for="url">URL:</label>
+        <input type="url" id="url" name="url" required>
+        
+        <label for="type_id">Type:</label>
+        <select id="type_id" name="type_id">
+            <option value="">-- Select Type --</option>
+            {% for type in types %}
+            <option value="{{ type[0] }}">{{ type[1] }}</option>
+            {% endfor %}
+        </select>
+        
+        <label for="icon">Icon:</label>
+        <input type="text" id="icon" name="icon">
+        
+        <input type="submit" value="Add Link">
+    </form>
+</body>
+</html>
