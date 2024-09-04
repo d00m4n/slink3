@@ -50,7 +50,7 @@ def api_addlink():
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--host', type=str, default='192.168.150.11', help='Web server host')
+    parser.add_argument('--host', type=str, default='0.0.0.0', help='Web server host')
     parser.add_argument('--port', type=int, default=5000, help='Web server port')
     args = parser.parse_args()
     
