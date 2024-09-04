@@ -5,7 +5,7 @@ from os import path
 import sys
 from typing import Optional, Tuple
 import argparse
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 import logging
 
 # custom imports
@@ -83,7 +83,7 @@ def interactive(conn: sqlite3.Connection, description: str, url: str, type_id: O
     add_link(conn, (datetime.now(), description, url, type_id, icon))
     logging.info("Link added successfully!")
 
-def web_server() -> None:
+def web_server(host: str, port: int) -> None:
     """
     Start a web server to input data via a web interface
     """
@@ -110,8 +110,28 @@ def web_server() -> None:
         types = cur.fetchall()
         conn.close()
         return render_template('index.html', types=types)
+    
+    @app.route('/api/addlink', methods=['POST'])
+    def api_addlink():
+        conn = create_connection(dbpath)
+        if not conn:
+            return jsonify({"error": "Unable to establish a connection to the database."}), 500
 
-    app.run()
+        data = request.get_json()
+        description = data.get('description')
+        url = data.get('url')
+        type_id = data.get('type_id')
+        icon = data.get('icon', '')
+
+        if not description or not url:
+            return jsonify({"error": "Please provide at least a description and a URL."}), 400
+
+        add_link(conn, (datetime.now(), description, url, type_id, icon))
+        conn.close()
+
+        return jsonify({"message": "Link added successfully!"}), 201
+
+    app.run(host=host, port=port)
 
 def main() -> None:
     """
@@ -124,12 +144,14 @@ def main() -> None:
     parser.add_argument('-i', '--icon', type=str, help='Link icon')
     parser.add_argument('-w', '--web', action='store_true', help='Start web server')
     parser.add_argument('-l', '--log', type=str, choices=['screen', 'file', 'all'], default=log, help='Logging mode')
+    parser.add_argument('--host', type=str, default='192.168.150.11', help='Web server host')
+    parser.add_argument('--port', type=int, default=5000, help='Web server port')
     args = parser.parse_args()
 
     setup_logging(args.log)
 
     if args.web:
-        web_server()
+        web_server(args.host, args.port)
     else:
         dbc = create_connection(dbpath)
         if dbc:
