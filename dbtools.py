@@ -18,9 +18,9 @@ def create_connection(db_file: str) -> Optional[sqlite3.Connection]:
             logging.info(f"Database file {db_file} does not exist. Creating new database.")
             conn = sqlite3.connect(db_file)
             
-            if path.isfile(f"{dbpath}/base.sql"):
+            if path.isfile(f"base.sql"):
                 logging.info("Importing database schema from base.sql")
-                with open(f"{dbpath}/base.sql", 'r') as f:
+                with open(f"base.sql", 'r') as f:
                     sql_statements = f.read().split(';')
                     for statement in sql_statements:
                         if statement.strip():
