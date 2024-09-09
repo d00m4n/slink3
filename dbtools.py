@@ -3,7 +3,7 @@ from sqlite3 import Error
 from datetime import datetime
 from os import path
 import logging
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 def create_connection(db_file: str) -> Optional[sqlite3.Connection]:
     """ create a database connection to the SQLite database
@@ -57,8 +57,22 @@ def add_link(conn: sqlite3.Connection, task: Tuple[datetime, str, str, Optional[
     return cur.lastrowid
 
 def interactive(conn: sqlite3.Connection, description: str, url: str, type_id: Optional[int], icon: str) -> None:
+    
     """
     interactive mode
     """
     add_link(conn, (datetime.now(), description, url, type_id, icon))
     logging.info("Link added successfully!")
+
+def get_links(conn: sqlite3.Connection, order: str = 'desc', limit: int = 10) -> List[Tuple]:
+    """
+    Get links from the database
+    :param conn: Database connection
+    :param order: Order of the results (asc or desc)
+    :param limit: Number of results to return
+    :return: List of link tuples
+    """
+    cur = conn.cursor()
+    cur.execute(f"SELECT * FROM links ORDER BY date {order} LIMIT {limit}")
+    links = cur.fetchall()
+    return links
