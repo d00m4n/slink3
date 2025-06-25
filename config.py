@@ -14,4 +14,3 @@ FTP_USER = 'username'
 FTP_PASSWORD = 'password'
 FTP_DIRECTORY = '/path/to/remote/directory/'
 print("Config loaded")
-cS!48BWv!@JtrQv
