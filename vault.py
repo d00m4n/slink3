@@ -1,1 +1,1 @@
-FTP_PASSWORD = 'your_secure_password'
+FTP_PASSWORD="OlVd8GM&27F*8Xxh"

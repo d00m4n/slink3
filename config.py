@@ -1,4 +1,4 @@
-from vault import FTP_PASSWORD
+
 
 theme="default"
 youtube="http://www.dmn.cat/youtube"
@@ -9,9 +9,9 @@ dynamic=5
 dbpath="./db/links.db"
 upload="./upload"
 log=True
-FTP_HOST = 'ftp.example.com'
-FTP_USER = 'username'
-FTP_PASSWORD = 'password'
-FTP_DIRECTORY = '/path/to/remote/directory/'
+FTP_HOST = 'ftp.doomans.com'
+FTP_USER = 'd00m4ninfo'
+# gpg --encrypt --recipient 'Your Name' vault.py
+FTP_DIRECTORY = '/'
 print("Config loaded")
-cS!48BWv!@JtrQv
+

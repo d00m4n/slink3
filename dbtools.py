@@ -73,6 +73,10 @@ def get_links(conn: sqlite3.Connection, order: str = 'desc', limit: int = 10) ->
     :return: List of link tuples
     """
     cur = conn.cursor()
-    cur.execute(f"SELECT * FROM links ORDER BY date {order} LIMIT {limit}")
+    # cur.execute(f"SELECT * FROM links ORDER BY date {order} LIMIT {limit}")
+    allowed_orders = ['asc', 'desc']
+    if order not in allowed_orders:
+        order = 'desc'
+    cur.execute("SELECT * FROM links ORDER BY date {} LIMIT ?".format(order), (limit,))
     links = cur.fetchall()
     return links
